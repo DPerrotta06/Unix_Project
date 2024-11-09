@@ -3,7 +3,7 @@
 read -p "Enter date and time: " date
 read -p "Enter a file name: " file
 read -p "Enter a designated directory: " directory
-read -p "Enter a address to backup this file: " address
+read -p "Enter an address to backup this file: " address
 
 if [ ! -f $file ]
 then
@@ -23,4 +23,4 @@ fi
 cd "$directory"
 pwd
 
-echo "Last backup has been done on $date successfully."
+echo "Last backup has been scheduled successfully on $date."
