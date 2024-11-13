@@ -109,6 +109,16 @@ add_user()
 	sudo 
  }
 
+ list_user_groups()
+ {
+ }
+
+ change_user_group()
+ {
+	
+ }
+
+
 
 'File Management')
 ;;
