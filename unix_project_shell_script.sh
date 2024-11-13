@@ -73,7 +73,42 @@ echo "Last backup has been scheduled successfully on $date."
 Network)
 ;;
 'User Management')
-;;
+add_user()
+ {
+	read -p "Enter username of new User" username
+	read -sp "Enter password for the $username" password
+	echo
+	sudo useradd -m "$username" #creates the new user 
+	echo  "$username":"$password" | sudo chpasswd #connects the username and the password together
+	echo "User $username has been added"
+ }
+
+ give_root_permission()
+ {
+	read -p "Enter username of user you want to give root permission to" username
+	sudo usermod -a -G sudo "$username"
+	echo "User $username has been granted permission to the root"
+ }
+
+ deleting_user()
+ {
+	read -p "Enter username of User you want to delete" username
+	sudo deluser "$username"
+	echo "User $username has been succesfully deleted"
+ }
+
+ show_connected_users()
+ {
+	echo "List of connected users:"
+	sudo who
+ }
+
+ disconnect_user()
+ {
+	read -p "Enter username of User you want to disconnect" username
+	sudo 
+ }
+
 
 'File Management')
 ;;
