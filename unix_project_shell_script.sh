@@ -62,11 +62,12 @@ done
 		read -p "Enter date and time: " date
 		read -p "Enter a file name: " file
 		read -p "Enter a designated directory: " directory
-		read -p "Enter an address to backup this file: " address
+		
 		if [ ! -f $file ]; then
  			echo "File doesn't exist!!!"
  		exit 1
 		fi
+		
 		if [ ! -d $directory ]; then
  			echo "Directory doesn't exist!!!"
  			mkdir -p  $directory
@@ -74,8 +75,9 @@ done
   			echo "$date" >> "$file"
  		 	cp "$file" "$directory"
 		fi
+		
 		cd "$directory"
-		pwd
+		find $(pwd) -name "$file"
 		echo "Last backup has been scheduled successfully on $date."
 ;;
 
@@ -237,15 +239,50 @@ Services)
 ;;
 
 'File Management')
+	read -p "Enter a username: " username
+
+	grep "$username" /etc/passwd #Checks if the username exists
+
+	if [ $? -eq 0 ]
+	then
+		echo "User exists."
+	else
+		echo "User not found!!!"
+		exit 1
+	fi
+
+	read -p "Enter a file name: " file
+
+	if [ -f "$file" ]
+	then
+		find $(pwd) -name "$file" #Finds full path of a file
+	else
+		echo "$file does not exists!!!"
+	fi
+
+	echo " "
+	#Display the 10 largest files in user's home directory
+	echo "Here are the 10 largest files of home directory- "
+	du -a /home | sort -n -r | head -n 10
+
+	echo " "
+	#Display the 10 oldest filesin user's home directory
+	echo "Here are the 10 oldest files of home dirsctory- "
+	find /home/ -type f -printf '%T+ %p\n' | sort | head -n 10
+
+	read -p "Enter a email address: " email
+	read -p "Enter a file name you want to send: " filename
+
+	echo "Email from Linux" | mail -s "Project email" -A "$filename" "$email"
 ;;
 
 Exit)
-echo "Goodbye!!!"
-break
+	echo "Goodbye!!!"
+	break
 ;;
 
 *)
-echo "Invalid option!"
+	echo "Invalid option!"
 ;;
 
 esac
