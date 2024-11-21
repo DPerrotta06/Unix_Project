@@ -1,14 +1,16 @@
 #!/bin/bash
 
-read -p "Welcome to $(whoami), what service can we provide for you? "
-	select choice in 'System Status' Backup Network 'User Management' Services 'File Management' Exit
-	do
-	case $choice in
+echo "Welcome to $(whoami), what service can we provide for you? "
+	
+select choice in 'System Status' Backup Network 'User Management' Services 'File Management' Exit
+do
+case $choice in
 
 	'System Status')
-		read -p "Welcome to the System Status menu! What can we do for you? "
+		echo "Welcome to the System Status menu! What can we do for you? "
 		select SSWidget in 'Memory Status' 'CPU Temperature' 'Active Processes' 'Back To Main Menu'
 		do
+		
 		case $SSWidget in
 
 			'Memory Status')
@@ -16,7 +18,7 @@ read -p "Welcome to $(whoami), what service can we provide for you? "
 				echo "============================================="
 				free -h | awk 'NR==2 {print "Used Memory: "$3}' #to show used memory in real time
 				echo "============================================="
-				;;
+			;;
 
 			'CPU Temperature')
 				cpu_temp=$(vcgencmd measure_temp | cut -d'=' -f2 | cut -d"'" -f1)
@@ -27,7 +29,7 @@ read -p "Welcome to $(whoami), what service can we provide for you? "
 					vcgencmd measure_temp | awk -F'=' '{print "CPU Temperature: "$2}' #check cpu tempearture and then is stored into variable to be used in an if statement
 					echo "CPU is at a stable temperature"
 				fi
-				;;
+			;;
 
 			'Active Processes')
 				if [ -e /usr/bin/htop ]; then
@@ -43,49 +45,72 @@ read -p "Welcome to $(whoami), what service can we provide for you? "
 						echo "Invalid option!"
 					fi
 				fi
-				;;
+			;;
 
 			'Back To Main Menu')
 				echo "Heading back to main menu..."
 				break;
-				;;
+			;;
 
 			*)
 				echo "Invalid option!"
-				;;
+			;;
 
-	esac
-done
-;;
+		esac
+		
+		done
+	;;
 
 	Backup)
-		read -p "Enter date and time: " date
-		read -p "Enter a file name: " file
-		read -p "Enter a designated directory: " directory
+		echo "Welcome to the Backup menu! What can we do for you? "
+        select BuWidget in 'Backup file' 'Back To Main Menu'
+        do
+
+        case $BuWidget in
+
+			'Backup file')		
+				read -p "Enter date and time: " date
+				read -p "Enter a file name: " file
+				read -p "Enter a designated directory: " directory
 		
-		if [ ! -f $file ]; then
- 			echo "File doesn't exist!!!"
- 		exit 1
-		fi
+				if [ ! -f $file ]; then
+ 					echo "File doesn't exist!!!"
+ 					touch "$file"
+				fi
 		
-		if [ ! -d $directory ]; then
- 			echo "Directory doesn't exist!!!"
- 			mkdir -p  $directory
-		else
-  			echo "$date" >> "$file"
- 		 	cp "$file" "$directory"
-		fi
+				if [ ! -d $directory ]; then
+ 					echo "Directory doesn't exist!!!"
+ 					mkdir -p  $directory
+				else
+  					echo "$date" >> "$file"
+ 		 			cp "$file" "$directory"
+				fi
 		
-		cd "$directory"
-		find $(pwd) -name "$file"
-		echo "Last backup has been scheduled successfully on $date."
-;;
+				cd "$directory" #Look fo the file in the directory
+				find $(pwd) -name "$file" #Look for the full path of the file
+				echo "Last backup has been scheduled successfully on $date."
+			;;
+
+			'Back To Main Menu')
+                echo "Heading back to main menu..."
+                break;
+                ;;
+
+            *)
+				echo "Invalid option!"
+            ;;
+
+        esac
+
+        done
+	;;
 
 
 	Network)
-		read -p "Welcome to the Network menu! What would you like to do?"
+		echo "Welcome to the Network menu! What would you like to do?"
 		select NWidget in 'Network Card Information' 'Network Card Manager' 'Change IP' 'Wifi Connections' 'Back To Main Menu'
 		do
+		
 		case $NWidget in
 
 			'Network Card Information')
@@ -97,7 +122,7 @@ done
 				echo -e "\033[1mDefault Gateway:\033[0m"
 				route -n | awk 'NR==3 {print $2}' #showing default gateway of current network card you are connected to
 				echo "============================================="
-		;;
+			;;
 
 			'Network Card Manager')
 				read -p "Would you like to disable or enable network cards on your system?" config
@@ -129,7 +154,7 @@ done
 					else
 						echo "Invalid option!"
 					fi #end of 1st if statement
-		;;
+			;;
 
 			'Change IP')
 				read -p "Enter an IP address to set to a network card of your choice" ip
@@ -149,7 +174,7 @@ done
 				else
 					echo "Invalid IP or network card!"
 				fi
-		;;
+			;;
 
 			'Wifi Connections')
 				if [ -e /usr/bin/nmcli ]; then
@@ -179,111 +204,144 @@ done
 				else
 					echo "Invalid option!"
 				fi
-		;;
+			;;
 
 			'Back To Main Menu')
 				echo "Heading back to main menu..."
 				break
-		;;
+			;;
 
 			*)
 				echo "Invalid option!"
-		;;
+			;;
 
 		esac
 
-	done
-;;
+		done
+	;;
 
-Services)
-;;
+	'User Management')
+		add_user()
+		{
+			read -p "Enter username of new User" username
+			read -sp "Enter password for the $username" password
+			echo
+			sudo useradd -m "$username" #creates the new user 
+			echo  "$username":"$password" | sudo chpasswd #connects the username and the password together
+			echo "User $username has been added"
+		}
+		give_root_permission()
+		{
+			read -p "Enter username of user you want to give root permission to" username
+			sudo usermod -a -G sudo "$username"
+			echo "User $username has been granted permission to the root"
+		}
+		deleting_user()
+		{
+			read -p "Enter username of User you want to delete" username
+			sudo deluser "$username"
+			echo "User $username has been succesfully deleted"
+		}
+		show_connected_users()
+		{
+			echo "List of connected users:"
+			sudo who
+		}
+		disconnect_user()
+		{
+			read -p "Enter username of User you want to disconnect" username
+			sudo 
+		}
+		list_user_groups()
+		{
+		}
+		change_user_group()
+		{
+		}
+	;;
 
-'User Management')
-	add_user()
- 	{
-		read -p "Enter username of new User" username
-		read -sp "Enter password for the $username" password
-		echo
-		sudo useradd -m "$username" #creates the new user 
-		echo  "$username":"$password" | sudo chpasswd #connects the username and the password together
-		echo "User $username has been added"
- 	}
- 	give_root_permission()
-	{
-		read -p "Enter username of user you want to give root permission to" username
-		sudo usermod -a -G sudo "$username"
-		echo "User $username has been granted permission to the root"
- 	}
- 	deleting_user()
- 	{
-		read -p "Enter username of User you want to delete" username
-		sudo deluser "$username"
-		echo "User $username has been succesfully deleted"
- 	}
- 	show_connected_users()
- 	{
-		echo "List of connected users:"
-		sudo who
- 	}
- 	disconnect_user()
- 	{
-		read -p "Enter username of User you want to disconnect" username
-		sudo 
- 	}
- 	list_user_groups()
- 	{
- 	}
- 	change_user_group()
- 	{
- 	}
-;;
+	Services)
+	;;
+	
+	'File Management')
+		echo "Welcome to the File Management menu! What can we do for you? "
+		select FMWidget in 'Check user and file' 'Display 10 largest files' 'Display 10 oldest files' 'Send email' 'Back To Main Menu'
+        do
+        	
+		case $FMWidget in
+	
+			'Check user and file')	
+				read -p "Enter a username: " username
 
-'File Management')
-	read -p "Enter a username: " username
+				grep "$username" /etc/passwd #Checks if the username exists
 
-	grep "$username" /etc/passwd #Checks if the username exists
+				if [ $? -eq 0 ]
+				then
+					echo "User exists."
+				else
+					echo "User not found!!!"
+					exit 1
+				fi
 
-	if [ $? -eq 0 ]
-	then
-		echo "User exists."
-	else
-		echo "User not found!!!"
-		exit 1
-	fi
+				read -p "Enter a file name: " file
 
-	read -p "Enter a file name: " file
+				if [ -f "$file" ]
+				then
+					find $(pwd) -name "$file" #Finds full path of a file
+				else
+					echo "$file does not exists!!!"
+				fi
 
-	if [ -f "$file" ]
-	then
-		find $(pwd) -name "$file" #Finds full path of a file
-	else
-		echo "$file does not exists!!!"
-	fi
+			;;
 
-	echo " "
-	#Display the 10 largest files in user's home directory
-	echo "Here are the 10 largest files of home directory- "
-	du -a /home | sort -n -r | head -n 10
+			'Display 10 largest files')	
+				#Display the 10 largest files in user's home directory
+				echo "Here are the 10 largest files of home directory- "
+				du -a /home | sort -n -r | head -n 10
 
-	echo " "
-	#Display the 10 oldest filesin user's home directory
-	echo "Here are the 10 oldest files of home dirsctory- "
-	find /home/ -type f -printf '%T+ %p\n' | sort | head -n 10
+			;;
 
-	read -p "Enter a email address: " email
-	read -p "Enter a file name you want to send: " filename
+			'Display 10 oldest files')
+				#Display the 10 oldest filesin user's home directory
+				echo "Here are the 10 oldest files of home directory- "
+				find /home/ -type f -printf '%T+ %p\n' | sort | head -n 10
+			;;
 
-	echo "Email from Linux" | mail -s "Project email" -A "$filename" "$email"
-;;
+			'Send email')
+				read -p "Enter a email address: " email
+				read -p "Enter a file name you want to send: " filename
 
-Exit)
-	echo "Goodbye!!!"
-	break
-;;
+				echo "Email from Linux" | mail -s "Project email" -A "$filename" "$email"
+	
+				if [ $? -eq 0 ]; then
+	 				echo "email has been sent successfully"
+				else
+					echo "error!!!"
+				fi
+			;;
 
-*)
-	echo "Invalid option!"
-;;
+			'Back To Main Menu')
+                echo "Heading back to main menu..."
+                break
+            ;;
+
+            *)
+                echo "Invalid option!"
+            ;;
+
+        esac
+
+        done
+	;;
+
+	Exit)
+		echo "Goodbye!!!"
+		break
+	;;
+
+	*)
+		echo "Invalid option!"
+	;;
 
 esac
 
