@@ -274,8 +274,37 @@ case $choice in
 
 
 
-	Services)
-	;;
+	 Services)
+                show_services()
+                {
+                        echo "List of current servuces that are on the system:"
+                        systemctl list-units --type=service --state=running
+                }
+
+                start_services()
+                {
+                        read -p "Enter name of the service that you want to start: " service
+                        sudo systemctl start "$service"
+                        if [ $? -eq 0 ]; then
+                        echo "Service $service started successfully"
+                        else
+                        echo "Failed to start the service $service "
+                        fi
+                }
+
+                stop_services()
+                {
+                        read -p "Enter the name of the service that you want to stop: " service
+                        sudo systemcl stop "$service"
+                        if [ $? -eq 0]; then
+                        echo "service $service stopped"
+                        else
+                        echo "The attempt to stop the service failed, pleae try again"
+                        fi
+                }
+
+        ;;
+
 	
 	'File Management')
 		echo "Welcome to the File Management menu! What can we do for you? "
