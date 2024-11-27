@@ -1,119 +1,143 @@
 #!/bin/bash
 
-echo "Welcome to $(whoami), what service can we provide for you? "
-	
-select choice in 'System Status' Backup Network 'User Management' Services 'File Management' Exit
-do
-case $choice in
+blue="\033[34m"
+green="\033[32m"
+orange="\033[38;5;208m"
+white="\033[46m"
+cyan="\033[36m"
+red="\033[1;31m"
+bold="\033[1m"
+black="\033[30m"
+hot_pink="\033[38;5;198m"
+magenta="\033[35m"
+yellow="\033[33m"
+dim="\033[2m"
+reset="\033[0m"
 
-	'System Status')
-		echo "Welcome to the System Status menu! What can we do for you? "
-		select SSWidget in 'Memory Status' 'CPU Temperature' 'Active Processes' 'Back To Main Menu'
+menu(){
+	echo -e "\e[36;40;1;4mWelcome to $(whoami), what service can we provide for you?\e[0m"
+	select choice in "$(echo -e $yellow"System Status"$reset)" "$(echo -e $hot_pink"Backup"$reset)" "$(echo -e $orange"Network"$reset)" "$(echo -e $cyan"User Management"$reset)" "$(echo -e $green"Services"$reset)" "$(echo -e $red"File Management"$reset)" Exit
+        do
+        case $choice in
+
+	"$(echo -e $yellow"System Status"$reset)")
+		System_Status
+	;;
+	"$(echo -e $hot_pink"Backup"$reset)")
+		Backup
+	;;
+	"$(echo -e $orange"Network"$reset)")
+		Network
+	;;
+	"$(echo -e $green"Services"$reset)")
+		Services
+	;;
+	"$(echo -e $cyan"User Management"$reset)")
+		User_Management
+	;;
+	"$(echo -e $red"File Management"$reset)")
+		File_Management
+	;;
+	Exit)
+		Exit
+	;;
+	*)
+		echo -e "\e[34;4;1mInvalid option!\e[0m"
+		menu
+	;;
+	esac
+	done
+}
+
+System_Status(){
+		echo -e "\e[33;;1mWelcome to the System Status menu! What can we do for you?\e[0m"
+		select SSWidget in "$(echo -e $yellow$dim"Memory Status"$reset)" "$(echo -e $yellow$dim"CPU Temperature"$reset)" "$(echo -e $yellow$dim"Active Processes"$reset)" 'Back To Main Menu'
 		do
-		
 		case $SSWidget in
 
-			'Memory Status')
+			"$(echo -e $yellow$dim"Memory Status"$reset)")
 				free -h | awk 'NR==2 {print "Available Memory: "$7}' #to show real time available memory
-				echo "============================================="
+				echo -e "\e[1m=============================================\e[0m"
 				free -h | awk 'NR==2 {print "Used Memory: "$3}' #to show used memory in real time
-				echo "============================================="
-			;;
+				echo -e "\e[1m=============================================\e[0m"
+				;;
 
-			'CPU Temperature')
+			"$(echo -e $yellow$dim"CPU Temperature"$reset)")
 				cpu_temp=$(vcgencmd measure_temp | cut -d'=' -f2 | cut -d"'" -f1)
-				if (( $(echo "$cpu_temp > 70.0" | bc -l) )); then
+				if (( $(echo -e "$cpu_temp > 70.0" | bc -l) )); then
 					printf "\a"
-					echo "YOU'RE CPU TEMPERATURE IS ABOVE 70.0'C!!!"
+					echo -e "\e[1;31;5mYOU'RE CPU TEMPERATURE IS ABOVE 70.0'C!!!\e[0m"
 				else
 					vcgencmd measure_temp | awk -F'=' '{print "CPU Temperature: "$2}' #check cpu tempearture and then is stored into variable to be used in an if statement
-					echo "CPU is at a stable temperature"
+					echo -e "\e[1;32mCPU is at a stable temperature\e[0m"
 				fi
-			;;
+				;;
 
-			'Active Processes')
+			"$(echo -e $yellow$dim"Active Processes"$reset)")
 				if [ -e /usr/bin/htop ]; then
 					htop
 				else
-					read -p "Before you proceed, you need to install the htop package on your $(uname -n) system. Is that ok? [y/n]" answer
+					read -p "$(echo -e $red$bold"Before you proceed, you need to 'install' the htop package on your $(uname -n) system. Is that ok? '[y/n]'"$reset) " answer
 					if [[ "${answer,,}" == "y" ]]; then
 						sudo apt install htop
 						htop
-					elif [[ "${answer}" == "n" ]]; then
-						echo "This package needs to be installed in order for you to manage your processes!!!"
+					elif [[ "${answer,,}" == "n" ]]; then
+						echo -e "\e[31;1mThis package needs to be installed in order for you to manage your processes!!!\e[0m"
 					else
-						echo "Invalid option!"
+						echo -e "\e[31;4;1mInvalid option!\e[0m"
 					fi
 				fi
-			;;
+				;;
 
 			'Back To Main Menu')
-				echo "Heading back to main menu..."
-				break;
-			;;
+				echo -e "\e[33;1;2mHeading back to main menu...\e[0m"
+				break
+				menu
+				;;
 
 			*)
-				echo "Invalid option!"
-			;;
-
-		esac
-		
+				echo -e "\e[31;4;1mInvalid option!\e[0m"
+				System_Status
+				;;
+			esac
 		done
-	;;
-
-	Backup)
-		echo "Welcome to the Backup menu! What can we do for you? "
-        select BuWidget in 'Backup file' 'Back To Main Menu'
-        do
-
-        case $BuWidget in
-
-			'Backup file')		
-				read -p "Enter date and time: " date
-				read -p "Enter a file name: " file
-				read -p "Enter a designated directory: " directory
-		
-				if [ ! -f $file ]; then
- 					echo "File doesn't exist!!!"
- 					touch "$file"
-				fi
-		
-				if [ ! -d $directory ]; then
- 					echo "Directory doesn't exist!!!"
- 					mkdir -p  $directory
-				else
-  					echo "$date" >> "$file"
- 		 			cp "$file" "$directory"
-				fi
-		
-				cd "$directory" #Look fo the file in the directory
-				find $(pwd) -name "$file" #Look for the full path of the file
-				echo "Last backup has been scheduled successfully on $date."
-			;;
-
-			'Back To Main Menu')
-                echo "Heading back to main menu..."
-                break;
-                ;;
-
-            *)
-				echo "Invalid option!"
-            ;;
-
-        esac
-
-        done
-	;;
+}
 
 
-	Network)
-		echo "Welcome to the Network menu! What would you like to do?"
-		select NWidget in 'Network Card Information' 'Network Card Manager' 'Change IP' 'Wifi Connections' 'Back To Main Menu'
+
+Backup(){
+	"$(echo -e $hot_pink"Backup"$reset)"
+		read -p "Enter date and time: " date
+		read -p "Enter a file name: " file
+		read -p "Enter a designated directory: " directory
+		read -p "Enter an address to backup this file: " address
+		if [ ! -f $file ]; then
+			echo "File doesn't exist!!!"
+			menu
+			#exit 1
+		fi
+		if [ ! -d $directory ]; then
+			echo "Directory doesn't exist!!!"
+			mkdir -p  $directory
+		else
+			echo "$date" >> "$file"
+			cp "$file" "$directory"
+		fi
+		cd "$directory"
+		pwd
+		echo "Last backup has been scheduled successfully on $date."
+		menu
+}
+
+
+
+Network(){
+		echo -e "\e[38;5;208;1mWelcome to the Network menu! What would you like to do?\e[0m"
+		select NWidget in "$(echo -e $orange$dim"Network Card Information"$reset)" "$(echo -e $orange$dim"Network Card Manager"$reset)" "$(echo -e $orange$dim"Change IP"$reset)" "$(echo -e $orange$dim"Wifi Connections"$reset)" 'Back To Main Menu'
 		do
-		
 		case $NWidget in
 
-			'Network Card Information')
+			"$(echo -e $orange$dim"Network Card Information"$reset)")
 				ifconfig
 				echo "============================================="
 				echo -e "\033[1mIP Addresses:\033[0m" #bold
@@ -122,71 +146,89 @@ case $choice in
 				echo -e "\033[1mDefault Gateway:\033[0m"
 				route -n | awk 'NR==3 {print $2}' #showing default gateway of current network card you are connected to
 				echo "============================================="
+				Network
 			;;
 
-			'Network Card Manager')
-				read -p "Would you like to disable or enable network cards on your system?" config
+			"$(echo -e $orange$dim"Network Card Manager"$reset)")
+				read -p "$(echo -e $red$bold"Would you like to disable or enable network cards on your system? "$reset) " config
                         		if [[ "${config,,}" == "enable" ]]; then #case insensitive, if statement 1 to check if you wan to enable a network card
                                 		echo "Select the name of the interface(network type) you would like to modify dispalyed above"
-                                		read -p "Interface: " interface
-                                		if [[ "${interface,,}" == "Ethernet" ]] || [ "$interface" == "eth0" ]; then #case insensitive, if statement 2 to check which interface ou want to use
+                                		read -p "$(echo -e $bold$cyan"Interface: "$reset)" interface
+                                		if [[ "${interface,,}" == "ethernet" ]] || [[ "${interface,,}" == "eth0" ]]; then #case insensitive, if statement 2 to check which interface you want to use
                                                 	sudo ifconfig eth0 up
-                       				elif [[ "${interface,,}" == "$Local Loopback" ]] || [ "$interface" == "lo" ]; then
-                                        		sudo ifconfig lo up
-                        			elif [[ "${interface,,}" == "$Wifi" ]] || [[ "${interface}" == "$Internet" ]] || [ "$interface" == "wlan0" ]; then #case insensitive
+                        			elif [[ "${interface,,}" == "wifi" ]] || [[ "${interface,,}" == "internet" ]] || [[ "${interface,,}" == "wlan0" ]]; then #case insensitive
                                         		sudo ifconfig wlan0 up
                                 		else
-                                        		echo "Invalid interface!"
+                                        		echo -e "\e[34;4;1mInvalid interface!\e[0m"
                         			fi #end of 2nd if statement
-                        		elif [[ "${config,,}" == "$disable" ]]; then #if you want to disable a network card
+                        		elif [[ "${config,,}" == "disable" ]]; then #if you want to disable a network card
 						echo "Select the name of the interface(network type) you would like to modify dispalyed above"
-                                                read -p "Interface: " interface
-                                                if [[ "${interface,,}" == "$Ethernet" ]] || [ "$interface" == "eth0" ]; then #case insensitive, if statement 3 to check which interface ou want to use
+                                                read -p "$(echo -e $bold$cyan"Interface: "$reset)" interface
+                                                if [[ "${interface,,}" == "ethernet" ]] || [[ "${interface,,}" == "eth0" ]]; then #case insensitive, if statement 3 to check which interface ou want to use
                                                 	sudo ifconfig eth0 down
-                                                elif [[ "${interface,,}" == "$Local Loopback" ]] || [ "$interface" == "lo" ]; then
-                                                        sudo ifconfig lo down
-                                                elif [[ "${interface,,}" == "$Wifi" ]] || [[ "${interface}" == "$Internet" ]] || [ "$interface" == "wlan0" ]; then
+                                                elif [[ "${interface,,}" == "wifi" ]] || [[ "${interface,,}" == "$internet" ]] || [[ "${interface,,}" == "wlan0" ]]; then
                                                         sudo ifconfig wlan0 down
                                                 else
-                                                        echo "Invalid interface!"
+                                                        echo -e "\e[34;4;1mInvalid interface!\e[0m"
                 				fi #end of 3rd if statement
 
 					else
-						echo "Invalid option!"
+						echo -e "\e[34;4;1mInvalid option!\e[0m"
 					fi #end of 1st if statement
+				Network
 			;;
 
-			'Change IP')
-				read -p "Enter an IP address to set to a network card of your choice" ip
-				read -p "Enter the network card you like to set this IP to" netCard
+			"$(echo -e $orange$dim"Change IP"$reset)")
+			read -p "$(echo -e $bold$cyan"Enter an IP address to set to a network card of your choice "$reset)" ip
+					echo "Checking if that ip is available..."
 				setIP(){
-					sudo ip addr add "$ip"/24 dev "$netCard"
-				}
-				if [[ "${netCard,,}" == "$Ethernet" ]] || [ "$netCard" == "eth0" ]; then
-					$(setIP "$ip" "$netCard")
-						ifconfig | awk 'NR==2 {print "Ethernet IP Address: "$2}'
-				elif [[ "${netCard,,}" == "Local loopback" ]] || [ "$netCard" == "lo" ]; then
-                        		$(setIP "$ip" "$netCard")
-						ifconfig | awk 'NR==8 {print "Local Loopback IP Address: "$2}'
-				elif [[ "${netCard,,}" == "Wifi" ]] || [[ "${netCard,,}" == "Internet" ]] || [ "$netCard" == "wlan0" ]; then
-					$(setIP "$ip" "$netCard")
-						ifconfig | awk 'NR==18 {print "Wifi IP Address: "$2}'
+                                        sudo ip addr add "$ip"/24 dev "$netCard"
+                                }
+				isValidIP(){
+                                        i=1
+                                        available_ips=()
+                                        while [ $i -ge 255 ]
+                                        do
+                                                ping -c 1 -W 1 "$octet.$i" > /dev/null 2>&1
+                                                if [ $? -eq 0 ]; then
+                                                        echo "$octet.$i is available!"
+                                                        available_ips+=$octet.$i
+                                                else
+                                                        echo "$octet.$i isn't available!"
+                                                fi
+                                        i=$((i + 1))
+                                        done
+                                                if [ ${#available_ips[@]} -ne 0 ]; then
+                                                        echo "Available IPs:"
+                                                        printf '%s\n' "${available_ips[@]}"
+                                                else
+                                                        echo "No available IPs found!"
+                                                fi
+                                }
+				isValidIP
+				read -p "$(echo -e $bold$cyan"Enter the network card you like to set this IP to "$reset)" netCard
+				if [[ "${netCard,,}" == "ethernet" ]] || [[ "${netCard,,}" == "eth0" ]]; then
+					setIP
+				elif [[ "${netCard,,}" == "wifi" ]] || [[ "${netCard,,}" == "internet" ]] || [[ "${netCard,,}" == "wlan0" ]]; then
+					setIP
 				else
 					echo "Invalid IP or network card!"
 				fi
+				ifconfig | awk 'NR==2 {print "Ethernet IP Address: "$2} NR==18 {print "Internet IP Address: "$2}'
+				Network
 			;;
 
-			'Wifi Connections')
+			"$(echo -e $orange$dim"Wifi Connections"$reset)")
 				if [ -e /usr/bin/nmcli ]; then
 					nmcli dev wifi
-				else
-					read -p "To use this service, you need the network manager package installed on your $(uname -n) system. Would you like proceed installing the package? [y/n]" answer
+				elif [ ! -e /usr/bin/nmcli ]; then
+					read -p "$(echo -e $bold$red"To use this service, you need the network manager package installed on your $(uname -n) system. Would you like proceed installing the package? [y/n] "$reset)" answer
 					if [[ "${answer,,}" == "y" ]]; then
 						sudo apt install network-manager #installing package
 						sudo systemctl start NetworkManager #starting up service
 						sudo systemctl enable NetworkManager #enabling it
 						nmcli dev wifi #showing nearby networks
-					elif [[ "${answer}" == "n" ]]; then
+					elif [[ "${answer,,}" == "n" ]]; then
 						echo "This package needs to be installed in order for you to manage your processes!!!"
 					else
 						echo "Invalid option!"
@@ -194,168 +236,201 @@ case $choice in
 				fi
 				echo "Connected Network:"
 				nmcli connection show --active
-				read -p "Would you like to connect to a different network? [y/n]" answer
+				read -p "$(echo -e $bold$cyan"Would you like to connect to a different network? [y/n] "$reset)" answer
 				if [[ "${answer,,}" == "y" ]]; then
-					read -p "Enter the name of the network you would like to connect to" network_name
+					read -p "$(echo -e $bold$cyan"Enter the name of the network you would like to connect to "$reset)" network_name
 					nmcli device disconnect wlan0
 					nmcli connection up "$network_name"
-				elif [[ "${answer}" == "n" ]]; then
+				elif [[ "${answer,,}" == "n" ]]; then
 					echo "The network will remain unchanged"
 				else
 					echo "Invalid option!"
 				fi
+				Network
 			;;
 
 			'Back To Main Menu')
 				echo "Heading back to main menu..."
-				break
+				menu
 			;;
 
 			*)
 				echo "Invalid option!"
 			;;
+	esac
+	done
+}
 
-		esac
 
-		done
+
+Services(){
+	echo "Welcome to the User Management menu! What can we do for you?"
+	select SWidget in 'Show Services' 'Service Management' 'Back To Main Menu'
+	do
+	case $SWidget in
+	
+	'Show Services')
+	echo "List of current services that are on the system:"
+    systemctl list-units --type=service --state=running
+    Services
+    ;;
+    'Service Management')
+		start_services(){
+			read -p "Enter name of the service that you want to start: " service
+            sudo systemctl start "$service"
+            if [ $? -eq 0 ]; then
+				echo "Service $service started successfully"
+            else
+				echo "Failed to start the service $service "
+            fi
+        }
+        stop_services(){
+			read -p "Enter the name of the service that you want to stop: " service
+            sudo systemcl stop "$service"
+            if [ $? -eq 0]; then
+				echo "service $service stopped"
+            else
+                echo "The attempt to stop the service failed, pleae try again"
+            fi
+		}
+        read -p "Do you want to start or stop a service? " choice
+		if [[ "${choice,,}" == "start" ]]; then
+			start_services
+		elif [[ "${choice,,}" == "stop" ]]; then
+			stop_services
+		else 
+			echo "Invalid option!"
+			fi
+	Services
 	;;
+	
+	'Back To Main Menu')
+		echo "Heading back to main menu..."
+        menu
+		;;
 
-	  'User Management')
-                add_user()
-                {
-                        read -p "Enter username of new User" username
-                        read -sp "Enter password for the $username" password
+		*)
+		echo "Invalid option!"
+			Services
+		;;
+	esac
+done
+}
+
+
+
+User_Management(){
+	echo "Welcome to the User Management menu! What can we do for you?"
+	select UMWidget in 'Add User' 'Give Root Permission' 'Delete User' 'Connected Users' 'Disconnect Users' 'User Group List' 'Change User Group' 'Back To Main Menu'
+    do
+	case $UMWidget in
+
+		'Add User')
+                	read -p "Enter username of the new user " username
+                        read -sp "Enter password for the $username " password
                         echo
                         sudo useradd -m "$username" #creates the new user 
                         echo  "$username":"$password" | sudo chpasswd #connects the username and the password together
                         echo "User $username has been added"
-                }
-                give_root_permission()
-                {
-                        read -p "Enter username of user you want to give root permission to" username
+		;;
+
+                'Give Root Permission')
+                        read -p "Enter username of user you want to give root permission to " username
                         sudo usermod -a -G sudo "$username"
                         echo "User $username has been granted permission to the root"
-                }
-                deleting_user()
-                {
-                        read -p "Enter username of User you want to delete" username
+                ;;
+
+                'Delete User')
+                        read -p "Enter username of User you want to delete " username
                         sudo deluser "$username"
                         echo "User $username has been succesfully deleted"
-                }
-                show_connected_users()
-                {
+		;;
+
+                'Connected Users')
                         echo "List of connected users:"
                         sudo who
-                }
-                disconnect_user()
-                {
-                        read -p "Enter username of User you want to disconnect" username
+                ;;
+
+               'Disconnect Users')
+                        read -p "Enter username of User you want to disconnect " username
                         user_id=$(gprep -u "$username")
-                        if [ -n "$user_id"]; then
+                        if [ -n "$user_id" ]; then
                         sudo kill -9 "$user_id"
                         echo "user $username has been disconnected"
                         else
                         echo "There is no active $username"
                         fi
-                }
-                list_user_groups()
-                {
+                ;;
+
+               'User Group List')
                         read -p "Enter username to view groups: " username
                         groups "$username"
-                }
-                change_user_group()
-                {
+                ;;
+
+               'Change User Group')
                         read -p "Username to change user group: " username
                         read -p "Primary group to change into: " group
                         sudo usermod -g "$group" "$username"
                         echo "The primary group for $username is now $group"
-                }
-        ;;
+        	;;
+
+                'Back To Main Menu')
+                       echo "Heading back to main menu..."
+                       break
+                       menu
+                ;;
+
+		*)
+			echo "Invalid option!"
+			User_Management
+		;;
+	esac
+done
+}
 
 
 
-	 Services)
-                show_services()
-                {
-                        echo "List of current servuces that are on the system:"
-                        systemctl list-units --type=service --state=running
-                }
-
-                start_services()
-                {
-                        read -p "Enter name of the service that you want to start: " service
-                        sudo systemctl start "$service"
-                        if [ $? -eq 0 ]; then
-                        echo "Service $service started successfully"
-                        else
-                        echo "Failed to start the service $service "
-                        fi
-                }
-
-                stop_services()
-                {
-                        read -p "Enter the name of the service that you want to stop: " service
-                        sudo systemcl stop "$service"
-                        if [ $? -eq 0]; then
-                        echo "service $service stopped"
-                        else
-                        echo "The attempt to stop the service failed, pleae try again"
-                        fi
-                }
-
-        ;;
-
-	
-	'File Management')
-		echo "Welcome to the File Management menu! What can we do for you? "
-		select FMWidget in 'Check user and file' 'Display 10 largest files' 'Display 10 oldest files' 'Send email' 'Back To Main Menu'
+File_Management(){
+	echo "Welcome to the File Management menu! What can we do for you?"
+		select FMWidget in 'Check User and File' 'Display 10 Largest Files' 'Display 10 Oldest Files' 'Send Email' 'Back To Main Menu'
         do
-        	
 		case $FMWidget in
-	
-			'Check user and file')	
+
+			'Check User and File')	
 				read -p "Enter a username: " username
-
 				grep "$username" /etc/passwd #Checks if the username exists
-
-				if [ $? -eq 0 ]
-				then
-					echo "User exists."
+				if [ $? -eq 0 ]; then
+					echo "User exists"
 				else
 					echo "User not found!!!"
 					exit 1
 				fi
-
 				read -p "Enter a file name: " file
-
 				if [ -f "$file" ]
 				then
 					find $(pwd) -name "$file" #Finds full path of a file
 				else
 					echo "$file does not exists!!!"
 				fi
-
 			;;
 
-			'Display 10 largest files')	
+			'Display 10 Largest Files')	
 				#Display the 10 largest files in user's home directory
 				echo "Here are the 10 largest files of home directory- "
 				du -a /home | sort -n -r | head -n 10
 
 			;;
 
-			'Display 10 oldest files')
+			'Display 10 Oldest Files')
 				#Display the 10 oldest filesin user's home directory
 				echo "Here are the 10 oldest files of home directory- "
 				find /home/ -type f -printf '%T+ %p\n' | sort | head -n 10
 			;;
 
-			'Send email')
+			'Send Email')
 				read -p "Enter a email address: " email
 				read -p "Enter a file name you want to send: " filename
-
 				echo "Email from Linux" | mail -s "Project email" -A "$filename" "$email"
-	
 				if [ $? -eq 0 ]; then
 	 				echo "email has been sent successfully"
 				else
@@ -366,6 +441,7 @@ case $choice in
 			'Back To Main Menu')
                 echo "Heading back to main menu..."
                 break
+                menu
             ;;
 
             *)
@@ -373,19 +449,13 @@ case $choice in
             ;;
 
         esac
-
         done
-	;;
+}
 
-	Exit)
-		echo "Goodbye!!!"
-		break
-	;;
 
-	*)
-		echo "Invalid option!"
-	;;
 
-esac
-
-done
+Exit(){
+	echo "Goodbye!!!"
+	exit 1
+}
+menu
