@@ -11,6 +11,7 @@ black="\033[30m"
 hot_pink="\033[38;5;198m"
 magenta="\033[35m"
 yellow="\033[33m"
+bright_yellow="\033[1;33m"
 dim="\033[2m"
 reset="\033[0m"
 
@@ -49,20 +50,22 @@ menu(){
 	done
 }
 
-System_Status(){
+System_Status(){ #COMPLETED DO NOT TOUCH ANYMORE!!!
 		echo -e "\e[33;;1mWelcome to the System Status menu! What can we do for you?\e[0m"
-		select SSWidget in "$(echo -e $yellow$dim"Memory Status"$reset)" "$(echo -e $yellow$dim"CPU Temperature"$reset)" "$(echo -e $yellow$dim"Active Processes"$reset)" 'Back To Main Menu'
+		select SSWidget in "$(echo -e $bright_yellow"Memory Status"$reset)" "$(echo -e $bright_yellow"CPU Temperature"$reset)" "$(echo -e $bright_yellow"Active Processes"$reset)" 'Back To Main Menu'
 		do
 		case $SSWidget in
 
-			"$(echo -e $yellow$dim"Memory Status"$reset)")
+			"$(echo -e $bright_yellow"Memory Status"$reset)")
+				echo -e "\e[1m=============================================\e[0m"
 				free -h | awk 'NR==2 {print "Available Memory: "$7}' #to show real time available memory
 				echo -e "\e[1m=============================================\e[0m"
 				free -h | awk 'NR==2 {print "Used Memory: "$3}' #to show used memory in real time
 				echo -e "\e[1m=============================================\e[0m"
+				System_Status
 				;;
 
-			"$(echo -e $yellow$dim"CPU Temperature"$reset)")
+			"$(echo -e $bright_yellow"CPU Temperature"$reset)")
 				cpu_temp=$(vcgencmd measure_temp | cut -d'=' -f2 | cut -d"'" -f1)
 				if (( $(echo -e "$cpu_temp > 70.0" | bc -l) )); then
 					printf "\a"
@@ -71,9 +74,10 @@ System_Status(){
 					vcgencmd measure_temp | awk -F'=' '{print "CPU Temperature: "$2}' #check cpu tempearture and then is stored into variable to be used in an if statement
 					echo -e "\e[1;32mCPU is at a stable temperature\e[0m"
 				fi
+				System_Status
 				;;
 
-			"$(echo -e $yellow$dim"Active Processes"$reset)")
+			"$(echo -e $bright_yellow"Active Processes"$reset)")
 				if [ -e /usr/bin/htop ]; then
 					htop
 				else
@@ -87,11 +91,11 @@ System_Status(){
 						echo -e "\e[31;4;1mInvalid option!\e[0m"
 					fi
 				fi
+				System_Status
 				;;
 
 			'Back To Main Menu')
 				echo -e "\e[33;1;2mHeading back to main menu...\e[0m"
-				break
 				menu
 				;;
 
@@ -106,26 +110,25 @@ System_Status(){
 
 
 Backup(){
-	"$(echo -e $hot_pink"Backup"$reset)"
-		read -p "Enter date and time: " date
+	echo "Welcome to the backup menu!"
+#		date_time=$(date)
+		read -p "Enter date and time: " $date_time
 		read -p "Enter a file name: " file
 		read -p "Enter a designated directory: " directory
-		read -p "Enter an address to backup this file: " address
 		if [ ! -f $file ]; then
 			echo "File doesn't exist!!!"
-			menu
-			#exit 1
+			Backup
 		fi
 		if [ ! -d $directory ]; then
 			echo "Directory doesn't exist!!!"
-			mkdir -p  $directory
+			mkdir -p $directory #makes directory anyway
 		else
-			echo "$date" >> "$file"
+			echo "$date_time" >> "$file"
 			cp "$file" "$directory"
 		fi
 		cd "$directory"
 		pwd
-		echo "Last backup has been scheduled successfully on $date."
+		echo "Last backup has been scheduled successfully on $date_time."
 		menu
 }
 
@@ -138,7 +141,9 @@ Network(){
 		case $NWidget in
 
 			"$(echo -e $orange$dim"Network Card Information"$reset)")
-				ifconfig
+				echo "============================================="
+				echo -e "$(echo -e $bold"Current Network Interface: "$reset)"
+				route -n | awk 'NR==3 {print $8}'
 				echo "============================================="
 				echo -e "\033[1mIP Addresses:\033[0m" #bold
 				route -n | awk 'NR==4 {print $1}' #showing ip of current network card you are connected to
@@ -150,6 +155,7 @@ Network(){
 			;;
 
 			"$(echo -e $orange$dim"Network Card Manager"$reset)")
+
 				read -p "$(echo -e $red$bold"Would you like to disable or enable network cards on your system? "$reset) " config
                         		if [[ "${config,,}" == "enable" ]]; then #case insensitive, if statement 1 to check if you wan to enable a network card
                                 		echo "Select the name of the interface(network type) you would like to modify dispalyed above"
@@ -186,24 +192,18 @@ Network(){
                                 }
 				isValidIP(){
                                         i=1
-                                        available_ips=()
-                                        while [ $i -ge 255 ]
+                                        while [ $i -le 255 ]
                                         do
                                                 ping -c 1 -W 1 "$octet.$i" > /dev/null 2>&1
                                                 if [ $? -eq 0 ]; then
                                                         echo "$octet.$i is available!"
-                                                        available_ips+=$octet.$i
+                                                        $octet.$i
+							setIP
                                                 else
                                                         echo "$octet.$i isn't available!"
                                                 fi
                                         i=$((i + 1))
                                         done
-                                                if [ ${#available_ips[@]} -ne 0 ]; then
-                                                        echo "Available IPs:"
-                                                        printf '%s\n' "${available_ips[@]}"
-                                                else
-                                                        echo "No available IPs found!"
-                                                fi
                                 }
 				isValidIP
 				read -p "$(echo -e $bold$cyan"Enter the network card you like to set this IP to "$reset)" netCard
@@ -240,6 +240,7 @@ Network(){
 				if [[ "${answer,,}" == "y" ]]; then
 					read -p "$(echo -e $bold$cyan"Enter the name of the network you would like to connect to "$reset)" network_name
 					nmcli device disconnect wlan0
+					nmcli device disconnect eth0
 					nmcli connection up "$network_name"
 				elif [[ "${answer,,}" == "n" ]]; then
 					echo "The network will remain unchanged"
@@ -303,7 +304,7 @@ Services(){
 			fi
 	Services
 	;;
-	
+
 	'Back To Main Menu')
 		echo "Heading back to main menu..."
         menu
@@ -358,7 +359,7 @@ User_Management(){
                         sudo kill -9 "$user_id"
                         echo "user $username has been disconnected"
                         else
-                        echo "There is no active $username"
+                        echo "There is no active users by the name of $username"
                         fi
                 ;;
 
@@ -376,7 +377,6 @@ User_Management(){
 
                 'Back To Main Menu')
                        echo "Heading back to main menu..."
-                       break
                        menu
                 ;;
 
@@ -428,19 +428,36 @@ File_Management(){
 			;;
 
 			'Send Email')
-				read -p "Enter a email address: " email
-				read -p "Enter a file name you want to send: " filename
-				echo "Email from Linux" | mail -s "Project email" -A "$filename" "$email"
-				if [ $? -eq 0 ]; then
-	 				echo "email has been sent successfully"
-				else
-					echo "error!!!"
+				if [ ! -e /usr/bin/mutt ]; then
+					echo "To use this service, you need the mutt package installed on your $(uname -n) system. Would you like proceed installing the package? [y/n] "  answer
+                                        if [[ "${answer,,}" == "y" ]]; then
+						sudo apt install mutt
+					elif [[ "${answer,,}" == "n" ]]; then
+						echo "This package needs to be installed in order for you to manage your processes!!!"
+						File_Management
+                                        else
+                                                echo "Invalid option!"
+						File_Management
+					fi
+				elif [ -e /usr/bin/mutt ];then
+					read -p "Enter a email address: " email
+					read -p "Enter a file name you want to send: " filename
+					if [ ! -f $filename ]; then
+						echo "'$filename' does not exist!"
+						File_Management
+					fi
+					echo "Email from Linux" | mutt -s "Project email" -a "$filename" -- "$email"
+        				if [ $? -eq 0 ]; then
+                				echo "email has been sent successfully"
+        				else
+                				echo "error!!!"
+        				fi
 				fi
+			File_Management
 			;;
 
 			'Back To Main Menu')
                 echo "Heading back to main menu..."
-                break
                 menu
             ;;
 
