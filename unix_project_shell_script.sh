@@ -111,8 +111,8 @@ System_Status(){ #COMPLETED DO NOT TOUCH ANYMORE!!!
 
 Backup(){
 	echo "Welcome to the backup menu!"
-#		date_time=$(date)
-		read -p "Enter date and time: " $date_time
+		date_time=$(date)
+#		read -p "Enter date and time: " $date_time
 		read -p "Enter a file name: " file
 		read -p "Enter a designated directory: " directory
 		if [ ! -f $file ]; then
