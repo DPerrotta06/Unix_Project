@@ -103,14 +103,14 @@ System_Status(){ #COMPLETED DO NOT TOUCH ANYMORE!!!
 				echo -e "\e[31;4;1mInvalid option!\e[0m"
 				System_Status
 				;;
-			esac
+		esac
 		done
 }
 
 
 
 Backup(){
-	echo "Welcome to the backup menu!"
+		echo "Welcome to the backup menu!"
 		date_time=$(date)
 #		read -p "Enter date and time: " $date_time
 		read -p "Enter a file name: " file
@@ -127,7 +127,7 @@ Backup(){
 			cp "$file" "$directory"
 		fi
 		cd "$directory"
-		pwd
+		find $(pwd) -name "$file"
 		echo "Last backup has been scheduled successfully on $date_time."
 		menu
 }
@@ -258,8 +258,8 @@ Network(){
 			*)
 				echo "Invalid option!"
 			;;
-	esac
-	done
+		esac
+		done
 }
 
 
@@ -385,13 +385,13 @@ User_Management(){
 			User_Management
 		;;
 	esac
-done
+	done
 }
 
 
 
 File_Management(){
-	echo "Welcome to the File Management menu! What can we do for you?"
+		echo "Welcome to the File Management menu! What can we do for you?"
 		select FMWidget in 'Check User and File' 'Display 10 Largest Files' 'Display 10 Oldest Files' 'Send Email' 'Back To Main Menu'
         do
 		case $FMWidget in
