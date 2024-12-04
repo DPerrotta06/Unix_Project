@@ -332,14 +332,19 @@ User_Management(){
                 	read -p "Enter username of the new user " username
                         read -sp "Enter password for the $username " password
                         echo
-                        sudo useradd -m "$username" #creates the new user
-                        echo  "$username":"$password" | sudo chpasswd #connects the username and the password together
+			if
+                        sudo useradd -m "$username"#creates the new user
+                        echo  "$username":"$password" | sudo chpasswd; then #connects the username and the password together
                         echo "User $username has been added"
+			else
+   			echo "Failed to add user. Please check for any error"
+      			fi
 		;;
 
                 "$(echo -e $cyan$bold"Give Root Permission"$reset)") #root permission
 			echo "Available users on the system:"
 			getent passwd | cut -d: -f1
+   			echo
                         read -p "Enter username of user you want to give root permission to " username
                         if id "$username" &>/dev/null; then
 			sudo usermod -a -G sudo "$username"
@@ -353,6 +358,7 @@ User_Management(){
                 "$(echo -e $cyan$bold"Delete User"$reset)") #delete user
                         echo "Available users on the system:"
 			getent passwd | cut -d: -f1
+   			echo
 			read -p "Enter username of User you want to delete " username
                         if id "$username" &>/dev/null; then
 			if sudo deluser "$username"; then
@@ -373,6 +379,7 @@ User_Management(){
                "$(echo -e $cyan$bold"Disconnect Users"$reset)") #disconnect user
                         echo "List of connected users:"
 			sudo who
+   			echo
 			read -p "Enter username of User you want to disconnect " username
                         user_id=$(gprep -u "$username")
                         if [ -n "$user_id" ]; then
@@ -387,15 +394,20 @@ User_Management(){
                         echo "Available users on the system:"
 			getent passwd | cut -d: -f1
 			read -p "Enter username to view groups: " username
+   			if id "$username" &>/dev/null; then
                         groups "$username"
+			else
+   			echo "User: $username does not exists"
                 ;;
 
                "$(echo -e $cyan$bold"Change User Group"$reset)") #change the user's group
                         echo "Available users on the system:"
 			getent passwd | cut -d: -f1
+   			echo
 			read -p "Username to change user group: " username
 			echo "List of groups:"
 			getent group | cut -d: f1
+   			echo
                         read -p "Primary group to change into: " group
                         if 
 			sudo usermod -g "$group" "$username"; then
