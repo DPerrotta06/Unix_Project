@@ -48,16 +48,16 @@ menu(){
 		menu #function calls itself if the user puts a choice that is not displayed
 	;;
 	esac
-done
+	done
 }
 
 System_Status(){ #COMPLETED DO NOT TOUCH ANYMORE!!!
-		echo -e "\e[33;;1mWelcome to the System Status menu! What can we do for you?\e[0m"
+		echo -e "\e[1;33;1mWelcome to the System Status menu! What can we do for you?\e[0m"
 		select SSWidget in "$(echo -e $bright_yellow"Memory Status"$reset)" "$(echo -e $bright_yellow"CPU Temperature"$reset)" "$(echo -e $bright_yellow"Active Processes"$reset)" 'Back To Main Menu'
 		do
 		case $SSWidget in
 
-			"$(echo -e $bright_yellow"Memory Status"$reset)") 
+			"$(echo -e $bright_yellow"Memory Status"$reset)")
 				echo -e "\e[1m=============================================\e[0m"
 				free -h | awk 'NR==2 {print "Available Memory: "$7}' #to show real time available memory with awk command to filter out important parts
 				echo -e "\e[1m=============================================\e[0m"
@@ -111,27 +111,24 @@ System_Status(){ #COMPLETED DO NOT TOUCH ANYMORE!!!
 
 
 Backup(){ #COMPLETED DO NOT TOUCH ANYMORE!!!
-		echo "Welcome to the backup menu!"
+	echo -e "\e[38;5;198;1mWelcome to the backup menu!\e[0m"
 		date_time=$(date)
 		#read -p "Enter date and time: " $date_time
 		read -p "$(echo -e $hot_pink"Enter a file name: "$reset) " file
 		read -p "$(echo -e $hot_pink"Enter a designated directory: "$reset) " directory
-		if [ ! -f "$file" ]; then
-			"$(echo -e $underline$red"File doesn't exist!!! Creating new file '$file'."$reset) "
+		if [ ! -f $file ]; then
+			echo "File doesn't exist!!! Creating new File '$file'."
 			touch "$file"
 		fi
-		
-		if [ ! -d "$directory" ]; then
-			"$(echo -e $underline$red"Directory doesn't exist!!! Creating new directory '$directory'"$reset) "
-			mkdir -p "$directory" 
+		if [ ! -d $directory ]; then
+			echo "Directory doesn't exist!!! Creating new directory '$directory'."
+			mkdir -p "$directory" #makes directory anyway
 		fi
-			
-		echo "$date_time" >> "$file"
-		cp "$file" "$directory"
-		
+			echo "$date_time" >> "$file"
+			cp "$file" "$directory"
 		cd "$directory"
-		find $(pwd) -name "$file" #Find full path of a file
-		"$(echo -e $green$underline"Last backup has been scheduled successfully on $date_time."$reset)"
+		find $(pwd) -name "$file"
+		echo "Last backup has been scheduled successfully on $date_time."
 		menu
 }
 
@@ -194,14 +191,14 @@ Network(){
 			read -p "$(echo -e $bold$cyan"Enter an IP address to set to a network card of your choice "$reset)" ip
 				read -p "$(echo -e $bold$cyan"Enter the network card you like to set this IP to "$reset)" netCard
 					setIP(){
-                    	if [ $(route -n | awk 'NR==3 {print $8}') == "wlan0" ]; then
-                            current=ifconfig | awk 'NR==18 {print $2}'
-                        elif [ $(route -n | awk 'NR==3 {print $8}') == "eth0" ]; then
-                            current=ifconfig | awk 'NR==2 {print $2}'
-                        fi
-                        sudo ifconfig $netCard $current $ip
-                        ifconfig
-                    }
+                                        	if [ $(route -n | awk 'NR==3 {print $8}') == "wlan0" ]; then
+                                                	current=ifconfig | awk 'NR==18 {print $2}'
+                                        	elif [ $(route -n | awk 'NR==3 {print $8}') == "eth0" ]; then
+                                                	current=ifconfig | awk 'NR==2 {print $2}'
+                                        	fi
+                                        	sudo ifconfig $netCard $current $ip
+                                        	ifconfig
+                                	}
 				if [[ "${netCard,,}" == "ethernet" ]] || [[ "${netCard,,}" == "eth0" ]]; then
 					setIP
 					ifconfig | awk 'NR==2 {print "$(echo -e $bold"Ethernet IP: "$reset)"$2}'
@@ -228,7 +225,6 @@ Network(){
 						echo "$(echo -e $red"This package needs to be installed in order for you to manage your processes!!!"$reset)"
 					else
 						echo "$(echo -e $red$bold$underline"Invalid option!"$reset)"
-						Network
 					fi
 				fi
 				echo "$(echo -e $orange"Connected Network:"$reset)"
@@ -254,7 +250,6 @@ Network(){
 
 			*)
 				echo "$(echo -e $bright_yellow"Invalid option! "$reset)"
-				Network
 			;;
 		esac
 	done
@@ -263,7 +258,7 @@ Network(){
 
 
 Services(){
-	"$(echo -e $green$bold"Welcome to the User Management menu! What can we do for you? "$reset)"
+	echo -e "\e[32;1mWelcome to the User Management menu! What can we do for you?\e[0m"
 	select SWidget in "$(echo -e $green$bold"Show Services"$reset)" "$(echo -e $green$bold"Service Management"$reset)" 'Back To Main Menu'
 	do
 	case $SWidget in
@@ -273,11 +268,9 @@ Services(){
 		systemctl list-units --type=service --state=running
 		Services
 	;;
-    
+ 
 	"$(echo -e $green$bold"Service Management"$reset)")
 		start_services(){
-			echo "List of current services that are on the system:"
-                        systemctl list-units --type=service --state=running
 			read -p "Enter name of the service that you want to start: " service
 			sudo systemctl start "$service"
 			if [ $? -eq 0 ]; then
@@ -287,8 +280,6 @@ Services(){
 			fi
 		}
 		stop_services(){
-			echo "List of current services that are on the system:"
-			systemctl list-units --type=service --state=running
 			read -p "Enter the name of the service that you want to stop: " service
 			sudo systemcl stop "$service"
 			if [ $? -eq 0]; then
@@ -297,24 +288,24 @@ Services(){
 				echo "The attempt to stop the service failed, pleae try again"
 			fi
 		}
-		read -p "Do you want to start or stop a service? (start/stop)" choice
+		read -p "Do you want to start or stop a service? " choice
 		if [[ "${choice,,}" == "start" ]]; then
 			start_services
 		elif [[ "${choice,,}" == "stop" ]]; then
 			stop_services
 		else 
-			echo "Invalid option! Please write start or stop"
+			echo "Invalid option!"
 		fi
 	Services
 	;;
 
 	'Back To Main Menu')
-		echo "$(echo -e $bright_yellow"Heading back to main menu... "$reset)"
+		echo "Heading back to main menu..."
 		menu
 	;;
 
 	*)
-		echo "$(echoe -e $red$bold$underline"Invalid option! "$reset)"
+		echo "Invalid option!"
 		Services
 	;;
 	
@@ -325,7 +316,7 @@ done
 
 
 User_Management(){
-	"$(echo -e $cyan$bold"Welcome to the User Management menu! What can we do for you? "$reset)"
+	echo -e "\e[36;1mWelcome to the User Management menu! What can we do for you?\e[0m"
 	select UMWidget in "$(echo -e $cyan$bold"Add User"$reset)" "$(echo -e $cyan$bold"Give Root Permission"$reset)" "$(echo -e $cyan$bold"Delete User"$reset)" "$(echo -e $cyan$bold"Connected Users"$reset)" "$(echo -e $cyan$bold"Disconnect Users"$reset)" "$(echo -e $cyan$bold"User Group List"$reset)" "$(echo -e $cyan$bold"Change User Group"$reset)" 'Back To Main Menu'
 	do
 	case $UMWidget in
@@ -334,43 +325,21 @@ User_Management(){
                 	read -p "Enter username of the new user " username
                         read -sp "Enter password for the $username " password
                         echo
-			if
-                        sudo useradd -m "$username"#creates the new user
-                        echo  "$username":"$password" | sudo chpasswd; then #connects the username and the password together
+                        sudo useradd -m "$username" #creates the new user
+                        echo  "$username":"$password" | sudo chpasswd #connects the username and the password together
                         echo "User $username has been added"
-			else
-   			echo "Failed to add user. Please check for any error"
-      			fi
 		;;
 
                 "$(echo -e $cyan$bold"Give Root Permission"$reset)") #root permission
-			echo "Available users on the system:"
-			getent passwd | cut -d: -f1
-   			echo
                         read -p "Enter username of user you want to give root permission to " username
-                        if id "$username" &>/dev/null; then
-			sudo usermod -a -G sudo "$username"
+                        sudo usermod -a -G sudo "$username"
                         echo "User $username has been granted permission to the root"
-			else
-			echo "User $username does not exist. Enter a valid username."
-			fi
-			
                 ;;
 
                 "$(echo -e $cyan$bold"Delete User"$reset)") #delete user
-                        echo "Available users on the system:"
-			getent passwd | cut -d: -f1
-   			echo
-			read -p "Enter username of User you want to delete " username
-                        if id "$username" &>/dev/null; then
-			if sudo deluser "$username"; then
+                        read -p "Enter username of User you want to delete " username
+                        sudo deluser "$username"
                         echo "User $username has been succesfully deleted"
-			else
-			echo "Failed to delete $username."
-			fi
-			else
-			echo "User $username does not exist"
-			fi
 		;;
 
                 "$(echo -e $cyan$bold"Connected Users"$reset)") #connect user
@@ -379,10 +348,7 @@ User_Management(){
                 ;;
 
                "$(echo -e $cyan$bold"Disconnect Users"$reset)") #disconnect user
-                        echo "List of connected users:"
-			sudo who
-   			echo
-			read -p "Enter username of User you want to disconnect " username
+                        read -p "Enter username of User you want to disconnect " username
                         user_id=$(gprep -u "$username")
                         if [ -n "$user_id" ]; then
                         sudo kill -9 "$user_id"
@@ -393,33 +359,19 @@ User_Management(){
                 ;;
 
                "$(echo -e $cyan$bold"User Group List"$reset)") #groups user is part of
-                        echo "Available users on the system:"
-			getent passwd | cut -d: -f1
-			read -p "Enter username to view groups: " username
-   			if id "$username" &>/dev/null; then
+                        read -p "Enter username to view groups: " username
                         groups "$username"
-			else
-   			echo "User: $username does not exists"
                 ;;
 
                "$(echo -e $cyan$bold"Change User Group"$reset)") #change the user's group
-                        echo "Available users on the system:"
-			getent passwd | cut -d: -f1
-   			echo
-			read -p "Username to change user group: " username
-			echo "List of groups:"
-			getent group | cut -d: f1
-   			echo
+                        read -p "Username to change user group: " username
                         read -p "Primary group to change into: " group
-                        if 
-			sudo usermod -g "$group" "$username"; then
-			echo "The primary group for $username is now $group"
-			else
-			echo "Failed to put $username to $group. Check if Username or Group name is correct"
+                        sudo usermod -g "$group" "$username"
+                        echo "The primary group for $username is now $group"
         	;;
 
                 'Back To Main Menu') #reprint main menu
-                       "$(echo -e $bright_yellow"Heading back to main menu..."$reset)"
+                       echo "Heading back to main menu..."
                        menu
                 ;;
 
@@ -428,25 +380,25 @@ User_Management(){
 			User_Management #reprints user management options
 		;;
 	esac
-	done
+done
 }
 
 
 
-File_Management(){ #COMPLETED DO NOT TOUCH ANYMORE!!!
-		"$(echo -e $red$bold"Welcome to the File Management menu! What can we do for you? "$reset)"
+File_Management(){
+	echo -e "\e[1;31;1mWelcome to the File Management menu! What can we do for you?\e[0m"
 		select FMWidget in "$(echo -e $red$bold"Check User and File"$reset)" "$(echo -e $red$bold"Display 10 Largest Files"$reset)" "$(echo -e $red$bold"Display 10 Oldest Files"$reset)" "$(echo -e $red$bold"Send Email"$reset)" 'Back To Main Menu'
 		do
 		case $FMWidget in
 
-			"$(echo -e $red$bold"Check User and File"$reset)")	
+			"$(echo -e $red$bold"Check User and File"$reset)")
 				read -p "Enter a username: " username
 				grep "$username" /etc/passwd #Checks if the username exists
 				if [ $? -eq 0 ]; then
 					"$(echo -e $green$bold"User exists" $reset)"
 				else
 					"$(echo -e $red$bold$underline"User not found!!! "$reset)"
-					exit 1
+					File_Management
 				fi
 				read -p "Enter a file name: " file
 				if [ -f "$file" ]
@@ -457,7 +409,7 @@ File_Management(){ #COMPLETED DO NOT TOUCH ANYMORE!!!
 				fi
 			;;
 
-			"$(echo -e $red$bold"Display 10 Largest Files"$reset)")	
+			"$(echo -e $red$bold"Display 10 Largest Files"$reset)")
 				#Display the 10 largest files in user's home directory
 				echo "Here are the 10 largest files of home directory- "
 				find /home/ -type f -exec du {} + | sort -n -r | head -n 10 #find to search into home directory, type -f command to files only, execute du command to show disk usage or disk space used by files {} + and return file path, sort numerically in reverse order and displays 10 largest files
@@ -466,27 +418,26 @@ File_Management(){ #COMPLETED DO NOT TOUCH ANYMORE!!!
 			"$(echo -e $red$bold"Display 10 Oldest Files"$reset)")
 				#Display the 10 oldest filesin user's home directory
 				echo "Here are the 10 oldest files of home directory- "
-				find /home/ -type f -printf '%T+ %p\n' | sort | head -n 10 #find to search into home directory, type -f command to files only, print to date and time format with \n new line, sort from oldest to newest and head -n 10 displays 10 oldest files.
+				find /home/ -type f -printf '%T+ %p\n' | sort | head -n 10  #find to search into home directory, type -f command to files only, print to date and time format with \n new line, sort from oldest to newest and head -n 10 displays 10 oldest files.
 			;;
 
 			"$(echo -e $red$bold"Send Email"$reset)")
 				if [ ! -e /usr/bin/mutt ]; then
 					"$(echo -e $bright_yellow$bold$underline"To use this service, you need the mutt package installed on your $(uname -n) system. Would you like proceed installing the package? [y/n] "$reset)"  answer
-                    if [[ "${answer,,}" == "y" ]]; then
+                                        if [[ "${answer,,}" == "y" ]]; then
 						sudo apt install mutt
 					elif [[ "${answer,,}" == "n" ]]; then
 						"$(echo -e $red$bold$underline"This package needs to be installed in order for you to manage your processes!!!" $reset)"
 						File_Management
-                    else
-                        "$(echo -e $red$bold$underline"Invalid option!" $reset)"
+                                        else
+                                                "$(echo -e $red$bold$underline"Invalid option!" $reset)"
 						File_Management
 					fi
 				elif [ -e /usr/bin/mutt ];then
 					read -p "Enter a email address: " email
 					read -p "Enter a file name you want to send: " filename
-					if [ ! -f $filename ]; then
+					if [ ! -f "$filename" ]; then
 						"$(echo -e $red$bold$underline"'$filename' does not exist!" $reset)"
-						touch "$filename"
 						File_Management
 					else
 						echo "Email from Linux" | mutt -s "Project email" -a "$filename" -- "$email"
@@ -501,16 +452,16 @@ File_Management(){ #COMPLETED DO NOT TOUCH ANYMORE!!!
 			;;
 
 			'Back To Main Menu')
-				"$(echo -e $bright_yellow"Heading back to main menu... "$reset)"
+				echo "Heading back to main menu... "
 				menu
 			;;
 
 			*)
-				"$(echo -e $red$bold$underline"Invalid option! "$reset)"
+				echo "Invalid option!"
 			;;
 
 		esac
-		done
+        done
 }
 
 
