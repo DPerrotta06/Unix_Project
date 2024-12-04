@@ -110,25 +110,27 @@ System_Status(){ #COMPLETED DO NOT TOUCH ANYMORE!!!
 
 
 
-Backup(){
-	echo "Welcome to the backup menu!"
+Backup(){ #COMPLETED DO NOT TOUCH ANYMORE!!!
+		echo "Welcome to the backup menu!"
 		date_time=$(date)
 		#read -p "Enter date and time: " $date_time
 		read -p "$(echo -e $hot_pink"Enter a file name: "$reset) " file
 		read -p "$(echo -e $hot_pink"Enter a designated directory: "$reset) " directory
-		if [ ! -f $file ]; then
-			"$(echo -e $underline$red"File doesn't exist!!! "$reset) "
-			Backup
+		if [ ! -f "$file" ]; then
+			"$(echo -e $underline$red"File doesn't exist!!! Creating new file '$file'."$reset) "
+			touch "$file"
 		fi
-		if [ ! -d $directory ]; then
-			"$(echo -e $underline$red"Directory doesn't exist!!! "$reset) "
-			mkdir -p $directory #makes directory anyway
-		else
-			echo "$date_time" >> "$file"
-			cp "$file" "$directory"
+		
+		if [ ! -d "$directory" ]; then
+			"$(echo -e $underline$red"Directory doesn't exist!!! Creating new directory '$directory'"$reset) "
+			mkdir -p "$directory" 
 		fi
+			
+		echo "$date_time" >> "$file"
+		cp "$file" "$directory"
+		
 		cd "$directory"
-		find $(pwd) -name "$file"
+		find $(pwd) -name "$file" #Find full path of a file
 		"$(echo -e $green$underline"Last backup has been scheduled successfully on $date_time."$reset)"
 		menu
 }
@@ -383,13 +385,13 @@ User_Management(){
 			User_Management #reprints user management options
 		;;
 	esac
-done
+	done
 }
 
 
 
-File_Management(){
-	"$(echo -e $red$bold"Welcome to the File Management menu! What can we do for you? "$reset)"
+File_Management(){ #COMPLETED DO NOT TOUCH ANYMORE!!!
+		"$(echo -e $red$bold"Welcome to the File Management menu! What can we do for you? "$reset)"
 		select FMWidget in "$(echo -e $red$bold"Check User and File"$reset)" "$(echo -e $red$bold"Display 10 Largest Files"$reset)" "$(echo -e $red$bold"Display 10 Oldest Files"$reset)" "$(echo -e $red$bold"Send Email"$reset)" 'Back To Main Menu'
 		do
 		case $FMWidget in
@@ -415,25 +417,25 @@ File_Management(){
 			"$(echo -e $red$bold"Display 10 Largest Files"$reset)")	
 				#Display the 10 largest files in user's home directory
 				echo "Here are the 10 largest files of home directory- "
-				du -a /home | sort -n -r | head -n 10
+				find /home/ -type f -exec du {} + | sort -n -r | head -n 10 #find to search into home directory, type -f command to files only, execute du command to show disk usage or disk space used by files {} + and return file path, sort numerically in reverse order and displays 10 largest files
 			;;
 
 			"$(echo -e $red$bold"Display 10 Oldest Files"$reset)")
 				#Display the 10 oldest filesin user's home directory
 				echo "Here are the 10 oldest files of home directory- "
-				find /home/ -type f -printf '%T+ %p\n' | sort | head -n 10
+				find /home/ -type f -printf '%T+ %p\n' | sort | head -n 10 #find to search into home directory, type -f command to files only, print to date and time format with \n new line, sort from oldest to newest and head -n 10 displays 10 oldest files.
 			;;
 
 			"$(echo -e $red$bold"Send Email"$reset)")
 				if [ ! -e /usr/bin/mutt ]; then
 					"$(echo -e $bright_yellow$bold$underline"To use this service, you need the mutt package installed on your $(uname -n) system. Would you like proceed installing the package? [y/n] "$reset)"  answer
-                                        if [[ "${answer,,}" == "y" ]]; then
+                    if [[ "${answer,,}" == "y" ]]; then
 						sudo apt install mutt
 					elif [[ "${answer,,}" == "n" ]]; then
 						"$(echo -e $red$bold$underline"This package needs to be installed in order for you to manage your processes!!!" $reset)"
 						File_Management
-                                        else
-                                                "$(echo -e $red$bold$underline"Invalid option!" $reset)"
+                    else
+                        "$(echo -e $red$bold$underline"Invalid option!" $reset)"
 						File_Management
 					fi
 				elif [ -e /usr/bin/mutt ];then
@@ -441,9 +443,11 @@ File_Management(){
 					read -p "Enter a file name you want to send: " filename
 					if [ ! -f $filename ]; then
 						"$(echo -e $red$bold$underline"'$filename' does not exist!" $reset)"
+						touch "$filename"
 						File_Management
+					else
+						echo "Email from Linux" | mutt -s "Project email" -a "$filename" -- "$email"
 					fi
-					echo "Email from Linux" | mutt -s "Project email" -a "$filename" -- "$email"
         				if [ $? -eq 0 ]; then
                 				echo "$(echo -e $green$bold"Email has been sent successfully "$reset)"
         				else
@@ -463,7 +467,7 @@ File_Management(){
 			;;
 
 		esac
-	done
+		done
 }
 
 
