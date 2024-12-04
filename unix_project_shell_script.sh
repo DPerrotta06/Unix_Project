@@ -274,6 +274,8 @@ Services(){
     
 	"$(echo -e $green$bold"Service Management"$reset)")
 		start_services(){
+			echo "List of current services that are on the system:"
+                        systemctl list-units --type=service --state=running
 			read -p "Enter name of the service that you want to start: " service
 			sudo systemctl start "$service"
 			if [ $? -eq 0 ]; then
@@ -283,6 +285,8 @@ Services(){
 			fi
 		}
 		stop_services(){
+			echo "List of current services that are on the system:"
+			systemctl list-units --type=service --state=running
 			read -p "Enter the name of the service that you want to stop: " service
 			sudo systemcl stop "$service"
 			if [ $? -eq 0]; then
@@ -291,13 +295,13 @@ Services(){
 				echo "The attempt to stop the service failed, pleae try again"
 			fi
 		}
-		read -p "Do you want to start or stop a service? " choice
+		read -p "Do you want to start or stop a service? (start/stop)" choice
 		if [[ "${choice,,}" == "start" ]]; then
 			start_services
 		elif [[ "${choice,,}" == "stop" ]]; then
 			stop_services
 		else 
-			echo "Invalid option!"
+			echo "Invalid option! Please write start or stop"
 		fi
 	Services
 	;;
@@ -334,15 +338,31 @@ User_Management(){
 		;;
 
                 "$(echo -e $cyan$bold"Give Root Permission"$reset)") #root permission
+			echo "Available users on the system:"
+			getent passwd | cut -d: -f1
                         read -p "Enter username of user you want to give root permission to " username
-                        sudo usermod -a -G sudo "$username"
+                        if id "$username" &>/dev/null; then
+			sudo usermod -a -G sudo "$username"
                         echo "User $username has been granted permission to the root"
+			else
+			echo "User $username does not exist. Enter a valid username."
+			fi
+			
                 ;;
 
                 "$(echo -e $cyan$bold"Delete User"$reset)") #delete user
-                        read -p "Enter username of User you want to delete " username
-                        sudo deluser "$username"
+                        echo "Available users on the system:"
+			getent passwd | cut -d: -f1
+			read -p "Enter username of User you want to delete " username
+                        if id "$username" &>/dev/null; then
+			if sudo deluser "$username"; then
                         echo "User $username has been succesfully deleted"
+			else
+			echo "Failed to delete $username."
+			fi
+			else
+			echo "User $username does not exist"
+			fi
 		;;
 
                 "$(echo -e $cyan$bold"Connected Users"$reset)") #connect user
@@ -351,7 +371,9 @@ User_Management(){
                 ;;
 
                "$(echo -e $cyan$bold"Disconnect Users"$reset)") #disconnect user
-                        read -p "Enter username of User you want to disconnect " username
+                        echo "List of connected users:"
+			sudo who
+			read -p "Enter username of User you want to disconnect " username
                         user_id=$(gprep -u "$username")
                         if [ -n "$user_id" ]; then
                         sudo kill -9 "$user_id"
@@ -362,15 +384,24 @@ User_Management(){
                 ;;
 
                "$(echo -e $cyan$bold"User Group List"$reset)") #groups user is part of
-                        read -p "Enter username to view groups: " username
+                        echo "Available users on the system:"
+			getent passwd | cut -d: -f1
+			read -p "Enter username to view groups: " username
                         groups "$username"
                 ;;
 
                "$(echo -e $cyan$bold"Change User Group"$reset)") #change the user's group
-                        read -p "Username to change user group: " username
+                        echo "Available users on the system:"
+			getent passwd | cut -d: -f1
+			read -p "Username to change user group: " username
+			echo "List of groups:"
+			getent group | cut -d: f1
                         read -p "Primary group to change into: " group
-                        sudo usermod -g "$group" "$username"
-                        echo "The primary group for $username is now $group"
+                        if 
+			sudo usermod -g "$group" "$username"; then
+			echo "The primary group for $username is now $group"
+			else
+			echo "Failed to put $username to $group. Check if Username or Group name is correct"
         	;;
 
                 'Back To Main Menu') #reprint main menu
